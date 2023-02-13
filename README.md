@@ -1,6 +1,6 @@
 # Phonebook backend/API
 
-The app is deployed online at .
+The app is deployed online at https://phonebook-api-msa8.onrender.com
 
 ## Running the app locally
 
