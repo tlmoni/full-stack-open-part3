@@ -16,11 +16,14 @@ const errorHandler = (error, request, response, next) => {
   if (error.name === "CastError") {
     return response.status(400).send({ error: "malformatted id" })
   }
+  else if (error.name === "ValidationError") {
+    return response.status(400).json({ error: error.message })
+  }
 
   next(error)
 }
 
-morgan.token("body", (req, res) => JSON.stringify(req.body))
+morgan.token("body", (request) => JSON.stringify(request.body))
 
 app.use(cors())
 app.use(express.static("build"))
@@ -37,8 +40,7 @@ app.get("/info", (request, response, next) => {
       )
     })
     .catch(error => next(error))
-  }
-)
+})
 
 app.get("/api/persons", (request, response, next) => {
   Person
@@ -47,8 +49,7 @@ app.get("/api/persons", (request, response, next) => {
       response.json(persons.map(person => person.toJSON()))
     })
     .catch(error => next(error))
-  }
-)
+})
 
 app.get("/api/persons/:id", (request, response, next) => {
   Person
@@ -62,21 +63,20 @@ app.get("/api/persons/:id", (request, response, next) => {
       }
     })
     .catch(error => next(error))
-  }
-)
+})
 
 app.post("/api/persons", (request, response, next) => {
-  const body = request.body
+  const { name, number } = request.body
 
-  if (!body.name || !body.number) {
+  if (!name || !number) {
     return response.status(400).json({
       error: "Name or number missing"
     })
   }
 
   const person = new Person({
-    name: body.name,
-    number: body.number
+    name: name,
+    number: number
   })
 
   person
@@ -87,24 +87,20 @@ app.post("/api/persons", (request, response, next) => {
       response.json(person)
     })
     .catch(error => next(error))
-  }
-)
+})
 
 app.put("/api/persons/:id", (request, response, next) => {
-  const body = request.body
+  const { name, number } = request.body
 
-  const person = {
-    name: body.name,
-    number: body.number
-  }
-
-  Person.findByIdAndUpdate(request.params.id, person, { new: true })
+  Person.findByIdAndUpdate(
+    request.params.id,
+    { name, number },
+    { new: true, runValidators: true, context: "query" })
     .then(person => {
       response.json(person.toJSON())
     })
     .catch(error => next(error))
-  }
-)
+})
 
 app.delete("/api/persons/:id", (request, response, next) => {
   Person
@@ -113,8 +109,7 @@ app.delete("/api/persons/:id", (request, response, next) => {
       response.status(204).end()
     })
     .catch(error => next(error))
-  }
-)
+})
 
 app.use(unknownEndpoint)
 app.use(errorHandler)

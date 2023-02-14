@@ -28,7 +28,7 @@ if (process.argv.length > 3) {
     number: number,
   })
 
-  person.save().then(result => {
+  person.save().then(() => {
     console.log("Person data saved!")
     mongoose.connection.close()
   })
@@ -42,6 +42,5 @@ else {
         console.log(`${person.name} ${person.number}`)
       })
       mongoose.connection.close()
-    }
-  )
+    })
 }
